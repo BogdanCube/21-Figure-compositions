@@ -1,45 +1,45 @@
+using Core;
+using Core.Figure;
+using UI;
 using UnityEngine;
 
 namespace InputFigure
 {
     public class FigureHandler : MonoBehaviour
     {
-        public class DragPin : MonoBehaviour
+        [SerializeField] private ProgressHandler _progressHandler;
+        [SerializeField] private Camera _camera;
+        private Figure _currentFigure;
+
+        private void Update()
         {
-            [SerializeField] private Camera _camera;
-            private Figure _currentFigure;
-
-            private void Update()
+            if (Input.GetMouseButton(0) && _progressHandler.Bar.IsFilled == false)
             {
-                if (Input.GetMouseButton(0))
-                {
-                    SelectPin();
-                }
-                else if (Input.GetMouseButtonUp(0) && _currentFigure)
-                {
-                    UnSelectPin();
-                }
+                SelectFigure();
             }
-
-            private void SelectPin()
+            else if (Input.GetMouseButtonUp(0) && _currentFigure)
             {
-                Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out RaycastHit raycastHit, float.MaxValue))
+                UnselectFigure();
+            }
+        }
+
+        private void SelectFigure()
+        {
+            Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit raycastHit, float.MaxValue))
+            {
+                if (raycastHit.collider.gameObject.TryGetComponent(out Figure figure))
                 {
-                    if (raycastHit.collider.gameObject.TryGetComponent(out Figure pin))
-                    {
-                        _currentFigure = pin;
-                        Vector3 moveVector = new Vector3(raycastHit.point.x, 0.5f, raycastHit.point.z);
-                        _currentFigure.Drag(moveVector);
-                    }
+                    _currentFigure = figure;
+                    _currentFigure.Dragger.Drag(raycastHit.point);
                 }
             }
+        }
 
-            private void UnSelectPin()
-            {
-                _currentFigure.NoDrag();
-                _currentFigure = null;
-            }
+        private void UnselectFigure()
+        {
+            _currentFigure.Dragger.NoDrag();
+            _currentFigure = null;
         }
     }
 }
